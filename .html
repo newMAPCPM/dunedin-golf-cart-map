@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dunedin Golf Cart Map</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-sA+g9HtXoX0+ghbcFrmu7lEkc7rFkMHEb6m30xsvmYI="
+    crossorigin=""/>
+
+  <style>
+    body { margin:0; padding:0; }
+    #map { position:absolute; top:0; bottom:0; right:0; left:0; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-o9N1j7k8dPq5ZbB+v1lg9S+j8OVKN6mTzRk2PaZV0wY="
+    crossorigin=""></script>
+
+  <script>
+    // Initialize the map centered on Dunedin, FL
+    var map = L.map('map').setView([28.034, -82.779], 15);
+
+    // Base map layer (free OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Load your GeoJSON layer
+    fetch('sandbox:/mnt/data/code.PNG') // <- Your uploaded Trail Accessibility GeoJSON
+      .then(response => response.json())
+      .then(data => {
+        L.geoJSON(data, {
+          style: function(feature) {
+            return { color: 'green', weight: 4 };
+          }
+        }).addTo(map);
+      });
+
+    // Show user's current location
+    map.locate({ setView: true, maxZoom: 17 });
+    function onLocationFound(e) {
+      var radius = e.accuracy / 2;
+      L.marker(e.latlng).addTo(map)
+        .bindPopup("You are within " + radius + " meters from this point").openPopup();
+      L.circle(e.latlng, radius).addTo(map);
+    }
+    map.on('locationfound', onLocationFound);
+
+    function onLocationError(e) {
+      alert("Location access denied.");
+    }
+    map.on('locationerror', onLocationError);
+  </script>
+</body>
+</html>
